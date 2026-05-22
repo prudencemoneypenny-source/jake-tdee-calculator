@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jake Kavanagh Coaching | TDEE & Calorie Calculator</title>
+<style>
+  :root{
+    --green:#071f3a;
+    --green2:#0d4f8b;
+    --cream:#f3f8ff;
+    --cream2:#ffffff;
+    --purple:#2f80ed;
+    --purple2:#d8ebff;
+    --gold:#63c7ff;
+    --ink:#0a1628;
+    --muted:#52667d;
+    --card:rgba(255,255,255,.94);
+    --shadow:0 18px 45px rgba(2,20,46,.22);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(99,199,255,.28), transparent 34%),
+      radial-gradient(circle at bottom right, rgba(47,128,237,.20), transparent 30%),
+      linear-gradient(135deg, #06172d, #0b3f74 58%, #062744 100%);
+    color:var(--ink);
+    min-height:100vh;
+    padding:28px;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{
+    color:var(--cream);
+    margin-bottom:22px;
+    display:grid;
+    grid-template-columns:1.4fr .6fr;
+    gap:18px;
+    align-items:end;
+  }
+
+  h1{
+    font-family: Georgia, "Times New Roman", serif;
+    font-size:clamp(2.1rem, 5vw, 4.6rem);
+    line-height:.95;
+    margin:0 0 12px;
+    letter-spacing:-.04em;
+  }
+
+  .sub{
+    font-size:1.05rem;
+    color:rgba(247,241,223,.82);
+    max-width:780px;
+    margin:0;
+  }
+
+  .brand-card{
+    justify-self:end;
+    background:rgba(255,250,240,.12);
+    border:1px solid rgba(255,250,240,.24);
+    color:var(--cream);
+    border-radius:24px;
+    padding:18px;
+    backdrop-filter:blur(10px);
+    max-width:310px;
+  }
+  .brand-card strong{display:block;font-family:Georgia,serif;font-size:1.25rem;margin-bottom:6px;}
+  .brand-card span{font-size:.93rem;color:rgba(247,241,223,.78)}
+
+  .grid{
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:20px;
+  }
+
+  .panel, .results, .chart-card, .extras{
+    background:var(--card);
+    border:1px solid rgba(255,255,255,.55);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+  }
+
+  .panel{padding:22px;}
+  .section-title{
+    font-family:Georgia,serif;
+    color:var(--green);
+    font-size:1.45rem;
+    margin:0 0 16px;
+  }
+
+  .control{margin:0 0 18px;}
+  label{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    font-weight:750;
+    color:var(--green);
+    margin-bottom:8px;
+  }
+  .value{
+    color:var(--purple);
+    font-weight:900;
+    white-space:nowrap;
+  }
+
+  input[type="range"]{
+    width:100%;
+    accent-color:var(--purple);
+  }
+
+  .segmented, select{
+    width:100%;
+  }
+
+  select{
+    border:1px solid #c9dcf3;
+    background:var(--cream2);
+    border-radius:14px;
+    padding:12px;
+    font-size:1rem;
+    color:var(--ink);
+    outline:none;
+  }
+
+  .segmented{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .segmented button{
+    border:1px solid #c9dcf3;
+    background:var(--cream2);
+    border-radius:14px;
+    padding:12px 10px;
+    font-weight:800;
+    color:var(--green);
+    cursor:pointer;
+    transition:.18s ease;
+  }
+  .segmented button.active{
+    background:var(--green2);
+    color:var(--cream);
+    border-color:var(--green2);
+  }
+
+  .main{
+    display:grid;
+    gap:20px;
+  }
+
+  .results{padding:22px;}
+  .headline{
+    font-family:Georgia,serif;
+    font-size:clamp(1.7rem, 3vw, 2.9rem);
+    line-height:1.03;
+    color:var(--green);
+    margin:0 0 18px;
+  }
+
+
+  .tdee-explainer{
+    background:linear-gradient(135deg, rgba(216,235,255,.95), rgba(255,255,255,.92));
+    border:1px solid rgba(47,128,237,.24);
+    border-radius:20px;
+    padding:14px 16px;
+    margin:0 0 16px;
+    color:var(--ink);
+    line-height:1.45;
+  }
+  .tdee-explainer strong{
+    display:block;
+    color:var(--green);
+    font-family:Georgia,serif;
+    font-size:1.15rem;
+    margin-bottom:4px;
+  }
+  .tdee-explainer span{color:var(--muted);}
+
+  .metric-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+  }
+  .metric{
+    background:var(--cream2);
+    border:1px solid #d3e6fb;
+    border-radius:20px;
+    padding:15px;
+    min-height:116px;
+  }
+  .metric small{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:var(--muted);
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    font-size:.72rem;
+  }
+  .metric b{
+    display:block;
+    font-size:clamp(1.45rem, 2.8vw, 2.1rem);
+    color:var(--green);
+    margin-top:8px;
+  }
+  .metric span{font-size:.9rem;color:var(--muted)}
+
+  .tip{
+    position:relative;
+    display:inline-grid;
+    place-items:center;
+    width:18px;height:18px;
+    border-radius:50%;
+    background:var(--purple2);
+    color:var(--green);
+    font-weight:900;
+    font-size:.75rem;
+    cursor:help;
+  }
+  .tip:hover::after{
+    content:attr(data-tip);
+    position:absolute;
+    left:50%;
+    bottom:130%;
+    transform:translateX(-50%);
+    width:245px;
+    background:#0b211d;
+    color:var(--cream);
+    padding:11px 12px;
+    border-radius:14px;
+    box-shadow:0 12px 25px rgba(0,0,0,.24);
+    z-index:10;
+    text-transform:none;
+    letter-spacing:0;
+    font-weight:600;
+    line-height:1.35;
+  }
+
+  .chart-card{padding:20px;}
+  canvas{width:100%;height:320px;display:block;}
+
+  .extras{
+    padding:20px;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+  }
+  .extra{
+    background:linear-gradient(180deg, #ffffff, #eef6ff);
+    border:1px solid #d3e6fb;
+    border-radius:20px;
+    padding:16px;
+  }
+  .extra h3{
+    margin:0 0 8px;
+    color:var(--green);
+    font-family:Georgia,serif;
+  }
+  .extra p{margin:0;color:var(--muted);line-height:1.42;}
+
+  .macro-bars{display:grid;gap:8px;margin-top:10px;}
+  .bar{height:12px;border-radius:99px;background:#d8ebff;overflow:hidden;}
+  .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--green2),var(--purple));transition:width .35s ease;}
+  .macro-line{display:flex;justify-content:space-between;font-size:.88rem;color:var(--muted);}
+
+  footer{
+    color:rgba(247,241,223,.75);
+    text-align:center;
+    margin-top:20px;
+    font-size:.92rem;
+  }
+
+  @media(max-width:920px){
+    body{padding:16px;}
+    header,.grid{grid-template-columns:1fr;}
+    .brand-card{justify-self:start;}
+    .metric-grid{grid-template-columns:1fr 1fr;}
+    .extras{grid-template-columns:1fr;}
+  }
+  @media(max-width:520px){.metric-grid{grid-template-columns:1fr;}canvas{height:260px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Fuel Target Finder</h1>
+      <p class="sub">A client-friendly TDEE and calorie calculator for coaching conversations: clear targets, no food guilt, no spreadsheet witchcraft, and absolutely no “shred for summer” nonsense.</p>
+    </div>
+    <div class="brand-card">
+      <strong>Jake Kavanagh Coaching style</strong>
+      <span>Blue, sharp, practical and client-safe. Estimate maintenance, set a realistic target, then coach the human — not just the number.</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <aside class="panel">
+      <h2 class="section-title">Client details</h2>
+
+      <div class="control">
+        <label>Gender <span class="value" id="genderText">Female</span></label>
+        <div class="segmented">
+          <button id="femaleBtn" class="active" type="button">Female</button>
+          <button id="maleBtn" type="button">Male</button>
+        </div>
+      </div>
+
+      <div class="control">
+        <label>Age <span class="value"><span id="ageVal">35</span> years</span></label>
+        <input id="age" type="range" min="18" max="80" value="35" />
+      </div>
+
+      <div class="control">
+        <label>Height <span class="value"><span id="heightVal">165</span> cm</span></label>
+        <input id="height" type="range" min="140" max="210" value="165" />
+      </div>
+
+      <div class="control">
+        <label>Current weight <span class="value"><span id="weightVal">75</span> kg</span></label>
+        <input id="weight" type="range" min="40" max="200" value="75" />
+      </div>
+
+      <div class="control">
+        <label>Activity level <span class="tip" data-tip="Activity level can swing the result by hundreds of calories. Most people overestimate it. That is not a character flaw — it is maths with a clipboard and notions.">?</span></label>
+        <select id="activity">
+          <option value="1.2">Sedentary — desk life, little exercise</option>
+          <option value="1.375">Lightly active — 1–3 sessions/week</option>
+          <option value="1.55" selected>Moderately active — 3–5 sessions/week</option>
+          <option value="1.725">Very active — 6–7 sessions/week</option>
+          <option value="1.9">Athlete — hard training/physical job</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label>Goal speed <span class="tip" data-tip="Aggressive deficits can backfire because hunger, sleep, mood and training performance all start acting like unpaid interns. The body is not a spreadsheet with abs.">?</span></label>
+        <select id="goal">
+          <option value="0">Maintain</option>
+          <option value="250">Gentle loss — about 0.25 kg/week</option>
+          <option value="500" selected>Steady loss — about 0.5 kg/week</option>
+          <option value="750">Aggressive loss — about 0.75 kg/week</option>
+        </select>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="results">
+        <h2 class="headline" id="headline">A sensible plan. Suspiciously adult.</h2>
+        <div class="tdee-explainer">
+          <strong>What is TDEE?</strong>
+          <span>TDEE stands for <b>Total Daily Energy Expenditure</b> — a fancy way of saying “roughly how many calories this body burns in a normal day, including breathing, blinking, training, walking to the kettle and pretending stairs are cardio.” It is an estimate, not a prophecy carved into a protein shaker.</span>
+        </div>
+        <div class="metric-grid">
+          <div class="metric">
+            <small>BMR</small>
+            <b><span id="bmrOut">0</span></b>
+            <span>calories/day at rest</span>
+          </div>
+          <div class="metric">
+            <small>TDEE <span class="tip" data-tip="TDEE means Total Daily Energy Expenditure: the estimated calories used in a full day including rest, movement, training and existing as a complicated mammal with opinions.">?</span></small>
+            <b><span id="tdeeOut">0</span></b>
+            <span>estimated maintenance</span>
+          </div>
+          <div class="metric">
+            <small>Target intake</small>
+            <b><span id="targetOut">0</span></b>
+            <span>recommended calories/day</span>
+          </div>
+          <div class="metric">
+            <small>Weekly change</small>
+            <b><span id="weeklyOut">0</span></b>
+            <span>estimated kg/week</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="chart-card">
+        <canvas id="chart" width="900" height="360" aria-label="Calorie target chart"></canvas>
+      </section>
+
+      <section class="extras">
+        <div class="extra">
+          <h3>Macro suggestion</h3>
+          <p id="macroText">Protein, carbs and fats update here.</p>
+          <div class="macro-bars">
+            <div class="macro-line"><span>Protein</span><span id="proteinPct">30%</span></div><div class="bar"><i id="proteinBar"></i></div>
+            <div class="macro-line"><span>Carbs</span><span id="carbPct">40%</span></div><div class="bar"><i id="carbBar"></i></div>
+            <div class="macro-line"><span>Fats</span><span id="fatPct">30%</span></div><div class="bar"><i id="fatBar"></i></div>
+          </div>
+        </div>
+        <div class="extra">
+          <h3>Hydration nudge</h3>
+          <p id="waterText">Water estimate updates here.</p>
+        </div>
+        <div class="extra">
+          <h3>Trainer note</h3>
+          <p>Use this as a coaching compass, not a courtroom verdict. Adjust from check-ins, progress, hunger, energy, sleep, training and real life arriving in with a chair.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>Illustrative information only. Not medical advice. Clients with medical conditions, pregnancy, eating disorder history or medication concerns should speak with a qualified health professional.</footer>
+</div>
+
+<script>
+(function(){
+  const els = {
+    age: document.getElementById('age'),
+    height: document.getElementById('height'),
+    weight: document.getElementById('weight'),
+    activity: document.getElementById('activity'),
+    goal: document.getElementById('goal'),
+    femaleBtn: document.getElementById('femaleBtn'),
+    maleBtn: document.getElementById('maleBtn'),
+    genderText: document.getElementById('genderText'),
+    ageVal: document.getElementById('ageVal'),
+    heightVal: document.getElementById('heightVal'),
+    weightVal: document.getElementById('weightVal'),
+    bmrOut: document.getElementById('bmrOut'),
+    tdeeOut: document.getElementById('tdeeOut'),
+    targetOut: document.getElementById('targetOut'),
+    weeklyOut: document.getElementById('weeklyOut'),
+    headline: document.getElementById('headline'),
+    macroText: document.getElementById('macroText'),
+    waterText: document.getElementById('waterText'),
+    proteinBar: document.getElementById('proteinBar'),
+    carbBar: document.getElementById('carbBar'),
+    fatBar: document.getElementById('fatBar'),
+    proteinPct: document.getElementById('proteinPct'),
+    carbPct: document.getElementById('carbPct'),
+    fatPct: document.getElementById('fatPct'),
+    canvas: document.getElementById('chart')
+  };
+
+  let gender = 'female';
+  let anim = { target: 0, tdee: 0 };
+  let goalData = { tdee:0, target:0, deficit:0 };
+  const ctx = els.canvas.getContext('2d');
+
+  function euroRound(n){ return Math.round(n).toLocaleString('en-IE'); }
+  function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
+
+  function calculate(){
+    const age = +els.age.value;
+    const height = +els.height.value;
+    const weight = +els.weight.value;
+    const activity = +els.activity.value;
+    const deficit = +els.goal.value;
+
+    els.ageVal.textContent = age;
+    els.heightVal.textContent = height;
+    els.weightVal.textContent = weight;
+
+    const s = gender === 'male' ? 5 : -161;
+    const bmr = (10 * weight) + (6.25 * height) - (5 * age) + s;
+    const tdee = bmr * activity;
+    const safeFloor = gender === 'male' ? 1500 : 1200;
+    const target = Math.max(safeFloor, tdee - deficit);
+    const actualDeficit = tdee - target;
+    const weeklyKg = actualDeficit === 0 ? 0 : (actualDeficit * 7) / 7700;
+
+    goalData = { bmr, tdee, target, deficit: actualDeficit };
+
+    els.bmrOut.textContent = euroRound(bmr);
+    els.tdeeOut.textContent = euroRound(tdee);
+    els.targetOut.textContent = euroRound(target);
+    els.weeklyOut.textContent = actualDeficit === 0 ? '0 kg' : '-' + weeklyKg.toFixed(2) + ' kg';
+    els.headline.textContent = headlineFor(target, actualDeficit);
+
+    updateMacros(target, weight, actualDeficit);
+    updateWater(weight);
+    animateChart();
+  }
+
+  function headlineFor(target, deficit){
+    if(deficit === 0) return 'Maintenance mode. Calm. Grown-up. Deeply suspicious.';
+    if(target < 1300) return 'That is tiny. Even the salad has concerns.';
+    if(target < 1500) return 'You’ll survive. Probably. The rice cake era has entered the chat.';
+    if(target < 1800) return 'That’s less “diet” and more “firm email from HR.”';
+    if(target < 2200) return 'A sensible target. No need to propose to cottage cheese just yet.';
+    if(target < 2700) return 'Fuelled, functional, and still legally allowed to enjoy dinner.';
+    return 'Big training energy. The air fryer is now part of the coaching team.';
+  }
+
+  function updateMacros(calories, weight, deficit){
+    let proteinG = clamp(weight * (deficit > 0 ? 1.8 : 1.6), 70, 220);
+    let fatCals = calories * 0.28;
+    let fatG = fatCals / 9;
+    let carbG = Math.max(0, (calories - (proteinG*4) - fatCals) / 4);
+
+    const proteinCals = proteinG * 4;
+    const carbCals = carbG * 4;
+    const total = proteinCals + carbCals + fatCals;
+    const pPct = Math.round((proteinCals/total)*100);
+    const cPct = Math.round((carbCals/total)*100);
+    const fPct = Math.round((fatCals/total)*100);
+
+    els.macroText.textContent = `${Math.round(proteinG)}g protein, ${Math.round(carbG)}g carbs, ${Math.round(fatG)}g fats. Adjust for preference, training and the will to live.`;
+    els.proteinPct.textContent = pPct + '%';
+    els.carbPct.textContent = cPct + '%';
+    els.fatPct.textContent = fPct + '%';
+    els.proteinBar.style.width = pPct + '%';
+    els.carbBar.style.width = cPct + '%';
+    els.fatBar.style.width = fPct + '%';
+  }
+
+  function updateWater(weight){
+    const low = Math.round(weight * 30 / 100) / 10;
+    const high = Math.round(weight * 35 / 100) / 10;
+    els.waterText.textContent = `Aim roughly for ${low}–${high} litres/day, then adjust for heat, sweat, caffeine and leg day, hot weather and coffee pretending it counts.`;
+  }
+
+  function animateChart(){
+    const startT = anim.tdee || goalData.tdee;
+    const startTarget = anim.target || goalData.target;
+    const endT = goalData.tdee;
+    const endTarget = goalData.target;
+    const start = performance.now();
+    const duration = 420;
+    function frame(now){
+      const p = Math.min(1, (now-start)/duration);
+      const ease = 1 - Math.pow(1-p, 3);
+      anim.tdee = startT + (endT-startT)*ease;
+      anim.target = startTarget + (endTarget-startTarget)*ease;
+      drawChart(anim.tdee, anim.target);
+      if(p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function drawChart(tdee, target){
+    const c = els.canvas;
+    const dpr = window.devicePixelRatio || 1;
+    const rect = c.getBoundingClientRect();
+    c.width = rect.width * dpr;
+    c.height = rect.height * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const w = rect.width, h = rect.height;
+    ctx.clearRect(0,0,w,h);
+
+    const pad = 44;
+    const maxVal = Math.max(tdee, target) + 500;
+    const minVal = Math.max(0, Math.min(tdee, target) - 700);
+    const x0 = pad, y0 = h-pad, x1 = w-pad, y1 = pad;
+    const mapY = v => y0 - ((v-minVal)/(maxVal-minVal))*(y0-y1);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(7,31,58,.14)';
+    ctx.fillStyle = 'rgba(7,31,58,.62)';
+    ctx.font = '12px system-ui';
+    for(let i=0;i<=4;i++){
+      const y = y0 - i*(y0-y1)/4;
+      const val = minVal + i*(maxVal-minVal)/4;
+      ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();
+      ctx.fillText(Math.round(val), 8, y+4);
+    }
+
+    const weeks = 12;
+    function lineFor(value, stroke, dash){
+      ctx.beginPath();
+      ctx.setLineDash(dash || []);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = stroke;
+      for(let i=0;i<=weeks;i++){
+        const x = x0 + i*(x1-x0)/weeks;
+        const y = mapY(value);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    lineFor(tdee, '#0d4f8b', []);
+    lineFor(target, '#2f80ed', [10,8]);
+
+    const tdeeY = mapY(tdee), targetY = mapY(target);
+    ctx.fillStyle = 'rgba(47,128,237,.13)';
+    ctx.fillRect(x0, Math.min(tdeeY,targetY), x1-x0, Math.abs(tdeeY-targetY));
+
+    ctx.fillStyle = '#071f3a';
+    ctx.font = '700 13px system-ui';
+    ctx.fillText('Maintenance/TDEE', x0, tdeeY-10);
+    ctx.fillStyle = '#2f80ed';
+    ctx.fillText('Target intake', x0, targetY+22);
+
+    ctx.fillStyle = 'rgba(7,31,58,.7)';
+    ctx.font = '12px system-ui';
+    ctx.fillText('Today', x0, h-14);
+    ctx.fillText('12 weeks', x1-54, h-14);
+  }
+
+  els.femaleBtn.addEventListener('click',()=>{
+    gender='female';
+    els.femaleBtn.classList.add('active'); els.maleBtn.classList.remove('active');
+    els.genderText.textContent='Female'; calculate();
+  });
+  els.maleBtn.addEventListener('click',()=>{
+    gender='male';
+    els.maleBtn.classList.add('active'); els.femaleBtn.classList.remove('active');
+    els.genderText.textContent='Male'; calculate();
+  });
+
+  ['age','height','weight','activity','goal'].forEach(id => els[id].addEventListener('input', calculate));
+  window.addEventListener('resize', () => drawChart(goalData.tdee, goalData.target));
+  calculate();
+})();
+</script>
+</body>
+</html>
